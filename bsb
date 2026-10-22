@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>BSB CHSB Hisoblagich</title>
+<meta name="description" content="BSB va CHSB natijalarini hisoblash: ball, foiz va baho avtomatik">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230F5C4D'/%3E%3Ctext x='16' y='22' font-size='16' text-anchor='middle' fill='white' font-family='Arial' font-weight='700'%3E5%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Onest:wght@400;500;600&display=swap">
+<style>
+/* Layout: bitta ustunli ish sahifasi. Kirish oynasi markazda, ish sahifasida bo'limlar ketma-ket. */
+:root {
+  --bg: #F1F4F2;
+  --surface: #FFFFFF;
+  --head: #E7EDEA;
+  --ink: #14211D;
+  --muted: #5B6A65;
+  --line: #D3DCD8;
+  --accent: #0F5C4D;
+  --accent-ink: #FFFFFF;
+  --bad: #B3261E;
+  --g5: #1B7F4B; --g5bg: #DDF3E6;
+  --g4: #1E64B0; --g4bg: #DCEAF9;
+  --g3: #A06A00; --g3bg: #FBEBC8;
+  --g2: #B3261E; --g2bg: #FADCD9;
+  --f-display: "Bricolage Grotesque", "Onest", system-ui, sans-serif;
+  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1614; --surface: #16211E; --head: #1E2D29; --ink: #E5EEEA; --muted: #93A49E;
+    --line: #2B3A36; --accent: #5FD0B5; --accent-ink: #08201A; --bad: #F2928B;
+    --g5: #6FD6A0; --g5bg: #17352A; --g4: #85BBF4; --g4bg: #172B42;
+    --g3: #EBC05F; --g3bg: #3A2E12; --g2: #F2928B; --g2bg: #3E1C19;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1614; --surface: #16211E; --head: #1E2D29; --ink: #E5EEEA; --muted: #93A49E;
+  --line: #2B3A36; --accent: #5FD0B5; --accent-ink: #08201A; --bad: #F2928B;
+  --g5: #6FD6A0; --g5bg: #17352A; --g4: #85BBF4; --g4bg: #172B42;
+  --g3: #EBC05F; --g3bg: #3A2E12; --g2: #F2928B; --g2bg: #3E1C19;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-block: 20px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1, h2, h3 { font-family: var(--f-display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(24px, 6vw, 34px); line-height: 1.1; letter-spacing: -0.01em; }
+h2 { font-size: 19px; }
+p { margin: 0; }
+.eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.muted { color: var(--muted); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.fld { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 500; min-width: 0; }
+input[type="text"], input[type="password"], select, textarea {
+  font: inherit; font-size: 15px; color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 9px 10px; min-width: 0; width: 100%;
+}
+.fld input.s { width: 84px; text-align: center; font-variant-numeric: tabular-nums; }
+.sub { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+button, .btn {
+  font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 6px; padding: 8px 12px;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink); display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+}
+button:hover, .btn:hover { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: not-allowed; }
+button.primary, .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button.quiet { color: var(--muted); font-weight: 500; }
+button.danger:hover { border-color: var(--bad); color: var(--bad); }
+button.del { padding: 4px 8px; color: var(--muted); font-weight: 500; border-color: transparent; background: transparent; }
+button.del:hover { color: var(--bad); border-color: var(--bad); }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.btn:focus-visible, :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { background: var(--g3bg); color: var(--g3); border-radius: 8px; padding: 10px 12px; font-size: 14px; display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.note button { color: var(--ink); }
+.info { background: var(--head); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.err { color: var(--bad); font-size: 14px; }
+.ok { color: var(--g5); font-size: 14px; }
+
+/* kirish */
+.auth { max-width: 440px; margin: 4vh auto 0; width: 100%; display: flex; flex-direction: column; gap: 16px; }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.tabs button { border: 0; border-radius: 0; background: var(--bg); color: var(--muted); justify-content: center; padding: 10px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+form.stack { display: flex; flex-direction: column; gap: 12px; }
+.fld.l { font-size: 13px; }
+.password-wrap { display: flex; align-items: stretch; gap: 6px; }
+.password-wrap input { flex: 1; min-width: 0; }
+.password-toggle { flex: 0 0 44px; justify-content: center; padding: 8px; font-size: 0; position: relative; }
+.password-toggle svg { width: 21px; height: 21px; display: block; }
+.password-toggle .eye-slash { display: none; }
+.password-toggle[aria-pressed="true"] .eye-slash { display: block; }
+
+/* yuqori panel */
+.topbar { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; }
+.brand { font-family: var(--f-display); font-weight: 700; font-size: 18px; }
+.who { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; font-size: 14px; }
+.tag { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--head); color: var(--muted); }
+
+/* tuzilma */
+.stp { display: inline-flex; align-items: center; gap: 8px; }
+.stp b { min-width: 24px; text-align: center; font-family: var(--f-display); font-size: 20px; font-variant-numeric: tabular-nums; }
+.stp button { padding: 4px 12px; font-size: 18px; line-height: 1.2; }
+.steppers { display: flex; flex-wrap: wrap; gap: 14px 32px; }
+.steppers > div { display: flex; flex-direction: column; gap: 6px; }
+.th { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 14px; margin-top: 8px; }
+.th label { display: flex; align-items: center; gap: 6px; }
+.th input { width: 64px; text-align: center; padding: 6px; font-variant-numeric: tabular-nums; }
+
+/* import */
+.imp { border: 1px dashed var(--accent); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.imp ol { margin: 0; padding: 0; list-style: none; max-height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.imp li { display: flex; gap: 8px; align-items: center; }
+.imp li span { width: 28px; text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.imp li input { padding: 6px 8px; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.add { display: flex; gap: 8px; flex: 1 1 260px; min-width: 0; }
+details summary { cursor: pointer; font-weight: 600; font-size: 14px; }
+details textarea { min-height: 100px; margin-top: 8px; }
+
+/* jadval */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; font-variant-numeric: tabular-nums; }
+.tablewrap table { min-width: 620px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+thead th { background: var(--head); font-weight: 600; font-size: 13px; line-height: 1.25; padding-block: 8px; }
+thead th small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+tbody tr:last-child td { border-bottom: 0; }
+.n { width: 36px; color: var(--muted); }
+.nm { text-align: left; position: sticky; left: 0; background: var(--surface); z-index: 1; min-width: 170px; box-shadow: 1px 0 0 var(--line); }
+thead .nm { background: var(--head); }
+td.nm input { border: 1px solid transparent; background: transparent; padding: 6px; }
+td.nm input:hover, input.sc:hover { border-color: var(--accent); }
+input.sc { width: 58px; text-align: center; border: 1px solid var(--line); background: var(--bg); color: var(--ink); border-radius: 6px; padding: 6px 4px; font: inherit; font-variant-numeric: tabular-nums; }
+input.bad { border-color: var(--bad); background: var(--g2bg); color: var(--g2); }
+td.tot, td.pct { font-weight: 600; }
+td.pct small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); }
+.chip { display: inline-block; min-width: 30px; padding: 3px 8px; border-radius: 999px; font-weight: 700; font-family: var(--f-display); }
+.chip.g5 { background: var(--g5bg); color: var(--g5); }
+.chip.g4 { background: var(--g4bg); color: var(--g4); }
+.chip.g3 { background: var(--g3bg); color: var(--g3); }
+.chip.g2 { background: var(--g2bg); color: var(--g2); }
+.chip.part { opacity: 0.55; }
+.chip.on { background: var(--g5bg); color: var(--g5); font-size: 12px; font-family: var(--f-body); }
+.chip.wait { background: var(--g3bg); color: var(--g3); font-size: 12px; font-family: var(--f-body); }
+.chip.off { background: var(--g2bg); color: var(--g2); font-size: 12px; font-family: var(--f-body); }
+.empty { padding: 22px; text-align: center; color: var(--muted); white-space: normal; }
+td.act { text-align: right; }
+td.act button { padding: 5px 9px; font-size: 13px; }
+td.act { display: table-cell; }
+.acts { display: inline-flex; gap: 6px; flex-wrap: nowrap; }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat b { font-family: var(--f-display); font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); }
+.dist { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--head); }
+.dist i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend em { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.msg { min-height: 22px; font-size: 14px; color: var(--accent); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.msg button { padding: 3px 10px; font-size: 13px; }
+.foot { font-size: 13px; color: var(--muted); }
+@media (prefers-reduced-motion: no-preference) { button, .btn { transition: border-color .15s, background .15s; } }
+</style>
+</head>
+<body>
+
+<main class="wrap" id="app"></main>
+
+<script>
+(function () {
+  "use strict";
+  var K_USERS = "bsbchsb.users.v2", K_SESS = "bsbchsb.session.v2", K_DATA = "bsbchsb.data.v2.";
+  var CONTACT = ""; 
+  var LIB = {
+    zip: "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js",
+    xlsx: "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
+    pdf: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+    pdfw: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+    jspdf: "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+  };
+  var FANLAR = ["Matematika", "Algebra", "Geometriya", "Fizika", "Kimyo", "Biologiya", "Informatika", "Ona tili va adabiyot", "Ingliz tili", "Rus tili", "Tarix", "Geografiya", "Iqtisodiyot", "Huquq", "Texnologiya", "Jismoniy tarbiya", "Tasviriy sanʼat", "Musiqa", "Boshqa"];
+
+  var $ = function (s) { return document.querySelector(s); };
+  var app = $("#app");
+  var mem = {};
+  function lsGet(k, d) {
+    try { var v = localStorage.getItem(k); if (v != null) return JSON.parse(v); } catch (e) {}
+    return (k in mem) ? JSON.parse(mem[k]) : d;
+  }
+  function lsSet(k, v) { var s = JSON.stringify(v); mem[k] = s; try { localStorage.setItem(k, s); } catch (e) {} }
+  function lsDel(k) { delete mem[k]; try { localStorage.removeItem(k); } catch (e) {} }
+  function uid() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-3); }
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function num(v) { if (v == null) return null; v = String(v).trim().replace(",", "."); if (v === "") return null; return /^\d+(\.\d+)?$/.test(v) ? parseFloat(v) : NaN; }
+  function fmt(n, d) { return Number(Number(n).toFixed(d == null ? 1 : d)).toString().replace(".", ","); }
+  function dstr(ts) { var d = new Date(ts); return ("0" + d.getDate()).slice(-2) + "." + ("0" + (d.getMonth() + 1)).slice(-2) + "." + d.getFullYear(); }
+
+  var me = null, T = null, IMP = [], impNote = "", authTab = "login", authMsg = null, lastDel = null, msgTimer;
+
+  function hashPw(pw, salt, strong) {
+    if (strong) {
+      var enc = new TextEncoder();
+      return crypto.subtle.importKey("raw", enc.encode(pw), "PBKDF2", false, ["deriveBits"]).then(function (k) {
+        return crypto.subtle.deriveBits({ name: "PBKDF2", salt: enc.encode(salt), iterations: 310000, hash: "SHA-256" }, k, 256);
+      }).then(function (buf) { return Array.from(new Uint8Array(buf)).map(function (b) { return ("0" + b.toString(16)).slice(-2); }).join(""); });
+    }
+    var data = salt + "|" + pw;
+    try {
+      return crypto.subtle.digest("SHA-256", new TextEncoder().encode(data)).then(function (buf) {
+        return Array.from(new Uint8Array(buf)).map(function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
+      });
+    } catch (e) {
+      var h = 5381; for (var i = 0; i < data.length; i++) h = ((h << 5) + h + data.charCodeAt(i)) | 0;
+      return Promise.resolve("x" + (h >>> 0).toString(16));
+    }
+  }
+  function normLogin(v) {
+    v = String(v || "").trim();
+    if (v.toLowerCase() === "admin") return "admin";
+    if (v.indexOf("@") > -1) return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? v.toLowerCase() : null;
+    var d = v.replace(/\D/g, "");
+    if (d.length === 9) d = "998" + d;
+    return /^998\d{9}$/.test(d) ? "+" + d : null;
+  }
+  function users() { return lsGet(K_USERS, []); }
+  function saveUsers(u) { lsSet(K_USERS, u); }
+  function curUser() { var id = lsGet(K_SESS, null); if (!id) return null; return users().find(function (u) { return u.id === id; }) || null; }
+
+  function defaultT() {
+    var rows = [["Abdullayev Jasur", [9, 8, 17]], ["Karimova Madina", [10, 10, 19]], ["Rahimov Sardor", [6, 7, 12]],
+      ["Toshpoʻlatova Nigora", [8, 9, 15]], ["Yoqubov Bekzod", [4, 5, 9]], ["Ergasheva Dilnoza", [7, 6, 13]]];
+    return {
+      p: { tuman: "", maktab: "", fio: me ? me.name : "", fan: "", sinf: "", chorak: "1" },
+      nB: 2, nC: 1, mx: ["10", "10", "20"], th: { 5: 86, 4: 71, 3: 55 }, sample: true,
+      st: rows.map(function (r, i) { return { id: i + 1, name: r[0], s: r[1].map(String) }; })
+    };
+  }
+  function loadT() { var t = lsGet(K_DATA + me.id, null) || defaultT(); if (!t.p.fio) t.p.fio = me.name; return t; }
+  function saveT() { lsSet(K_DATA + me.id, T); }
+
+  function maxes() { return T.mx.map(function (m) { return num(m) || 0; }); }
+  function maxTotal() { return maxes().reduce(function (a, b) { return a + b; }, 0); }
+  function lab(i) { return i < T.nB ? "BSB " + (i + 1) : (T.nC > 1 ? "CHSB " + (i - T.nB + 1) : "CHSB"); }
+  function cfgErr() {
+    if (T.mx.map(num).some(function (m) { return !(m > 0); })) return "Maksimal ball 0 dan katta son boʻlishi kerak.";
+    var a = num(T.th[5]), b = num(T.th[4]), c = num(T.th[3]);
+    if ([a, b, c].some(function (x) { return x == null || isNaN(x) || x > 100; })) return "Baho chegaralari 0–100 oraligʻida son boʻlishi kerak.";
+    if (!(a > b && b > c)) return "Chegaralar tartibi: 5 baho > 4 baho > 3 baho boʻlishi kerak.";
+    return "";
+  }
+  function gradeOf(p) { var e = 1e-9; if (p + e >= num(T.th[5])) return 5; if (p + e >= num(T.th[4])) return 4; if (p + e >= num(T.th[3])) return 3; return 2; }
+  function calc(st) {
+    var mx = maxes(), sum = 0, filled = 0, nb = 0, bad = [];
+    st.s.forEach(function (v, i) {
+      var n = num(v);
+      if (n == null) { bad.push(false); return; }
+      if (isNaN(n) || n > mx[i]) { bad.push(true); nb++; return; }
+      bad.push(false); filled++; sum += n;
+    });
+    var tot = maxTotal(), exact = tot > 0 ? sum / tot * 100 : 0;
+    return { sum: sum, pct: Math.round(exact * 100) / 100, filled: filled, blank: st.s.length - filled - nb, bad: bad, hasBad: nb > 0, grade: (!nb && filled && !cfgErr()) ? gradeOf(exact) : null };
+  }
+
+  var loaded = {};
+  function loadScript(url) {
+    if (loaded[url]) return loaded[url];
+    loaded[url] = new Promise(function (res, rej) {
+      var s = document.createElement("script");
+      s.src = url; s.onload = res;
+      s.onerror = function () { delete loaded[url]; rej(new Error("Kerakli kutubxona yuklanmadi. Internetni tekshirib qayta urining.")); };
+      document.head.appendChild(s);
+    });
+    return loaded[url];
+  }
+
+  function bar() {
+    return '<div class="topbar"><div class="brand">BSB · CHSB</div><div class="who"><span>' + esc(me.name) + '</span><span class="tag">' +
+      (me.role === "admin" ? "Admin" : "Oʻqituvchi") + '</span><button type="button" class="quiet" data-act="logout">Chiqish</button></div></div>';
+  }
+  function viewAuth() {
+    var m = authMsg ? '<p class="' + (authMsg.t === "ok" ? "ok" : "err") + '" role="alert">' + esc(authMsg.text) + '</p>' : "";
+    var login = '<form class="stack" id="fLogin" autocomplete="on">' +
+      '<label class="fld l">Email yoki telefon raqam<input type="text" id="lLogin" inputmode="text" autocomplete="username"></label>' +
+      '<label class="fld l">Parol<div class="password-wrap"><input type="password" id="lPass" autocomplete="current-password"><button type="button" class="password-toggle" data-act="toggle-pass" data-target="lPass" aria-label="Parolni ko‘rsatish" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="M3 3 21 21"/></svg></button></div></label>' + m +
+      '<button type="submit" class="primary" style="justify-content:center">Kirish</button></form>';
+    var reg = '<form class="stack" id="fReg" autocomplete="on">' +
+      '<label class="fld l">Ism<input type="text" id="rName" autocomplete="name" placeholder="Ism va familiya"></label>' +
+      '<label class="fld l">Email yoki telefon raqam<input type="text" id="rLogin" inputmode="text" autocomplete="username"></label>' +
+      '<label class="fld l">Parol (kamida 6 belgi)<div class="password-wrap"><input type="password" id="rPass" autocomplete="new-password"><button type="button" class="password-toggle" data-act="toggle-pass" data-target="rPass" aria-label="Parolni ko‘rsatish" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="M3 3 21 21"/></svg></button></div></label>' +
+      '<label class="fld l">Parolni tasdiqlang<div class="password-wrap"><input type="password" id="rPass2" autocomplete="new-password"><button type="button" class="password-toggle" data-act="toggle-pass" data-target="rPass2" aria-label="Parolni ko‘rsatish" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path class="eye-slash" d="M3 3 21 21"/></svg></button></div></label>' + m +
+      '<button type="submit" class="primary" style="justify-content:center">Roʻyxatdan oʻtish</button></form>';
+    return '<div class="auth"><div><p class="eyebrow">Chorak baholash</p><h1>BSB va CHSB nazorat</h1>' +
+      '<p class="muted" style="margin-top:8px">Iqtisoslashtirilgan maktab oʻqituvchilari uchun. Ballarni kiriting, foiz va baho avtomatik chiqadi.</p></div>' +
+      '<div class="panel"><div class="tabs" role="tablist"><button type="button" role="tab" data-act="tab-login" aria-selected="' + (authTab === "login") + '">Kirish</button>' +
+      '<button type="button" role="tab" data-act="tab-reg" aria-selected="' + (authTab === "reg") + '">Roʻyxatdan oʻtish</button></div>' +
+      (authTab === "login" ? login : reg) + '</div>' +
+      '</div>';
+  }
+  function viewWait() {
+    var blocked = me.status === "blocked";
+    return '<div class="auth">' + bar() + '<div class="panel"><h2>' + (blocked ? "Kirish toʻxtatilgan" : "Ruxsat kutilmoqda") + '</h2>' +
+      '<p>' + (blocked ? "Admin sizning hisobingizga ruxsatni toʻxtatgan. Admin bilan bogʻlaning." :
+        "Ariza qabul qilindi. Saytda ishlash uchun toʻlovni amalga oshiring. Toʻlov tasdiqlangach admin ruxsat beradi va siz shu login va parol bilan ishlay olasiz." + (CONTACT ? " " + CONTACT : " Toʻlov tafsilotlari uchun admin bilan bogʻlaning.")) + '</p>' +
+      '<div class="row"><button type="button" class="primary" data-act="refresh">Holatni yangilash</button></div></div></div>';
+  }
+  function viewAdmin() {
+    var us = users().filter(function (u) { return u.role !== "admin"; });
+    var cnt = { pending: 0, active: 0, blocked: 0 };
+    us.forEach(function (u) { cnt[u.status] = (cnt[u.status] || 0) + 1; });
+    var rows = us.map(function (u) {
+      var chip = u.status === "active" ? '<span class="chip on">Faol</span>' : u.status === "blocked" ? '<span class="chip off">Toʻxtatilgan</span>' : '<span class="chip wait">Toʻlov kutilmoqda</span>';
+      var acts = '';
+      if (u.status !== "active") acts += '<button type="button" class="primary" data-act="approve" data-id="' + u.id + '">Ruxsat berish</button>';
+      if (u.status === "active") acts += '<button type="button" data-act="block" data-id="' + u.id + '">Toʻxtatish</button>';
+      acts += '<button type="button" class="danger" data-act="deluser" data-confirm data-id="' + u.id + '">Oʻchirish</button>';
+      return '<tr><td style="text-align:left">' + esc(u.name) + '</td><td style="text-align:left">' + esc(u.login) + '</td><td>' + dstr(u.created) + '</td><td>' + chip +
+        '</td><td class="act"><div class="acts">' + acts + '</div></td></tr>';
+    }).join("");
+    return '<div class="wrap" style="gap:18px">' + bar() +
+      '<div><p class="eyebrow">Admin panel</p><h1>Oʻqituvchilar</h1></div>' +
+      '<div class="panel"><div class="stats"><div class="stat"><b>' + us.length + '</b><span>jami roʻyxatdan oʻtgan</span></div>' +
+      '<div class="stat"><b>' + cnt.pending + '</b><span>toʻlov kutilmoqda</span></div><div class="stat"><b>' + cnt.active + '</b><span>ruxsat berilgan</span></div></div></div>' +
+      '<div class="panel"><h2>Roʻyxat</h2><p class="muted">Toʻlov tushganini tekshirgach, “Ruxsat berish” tugmasini bosing.</p>' +
+      '<div class="tablewrap"><table><thead><tr><th style="text-align:left">Ism</th><th style="text-align:left">Login</th><th>Sana</th><th>Holat</th><th></th></tr></thead><tbody>' +
+      (rows || '<tr><td colspan="5" class="empty">Hozircha hech kim roʻyxatdan oʻtmagan.</td></tr>') + '</tbody></table></div></div></div>';
+  }
+  function viewWork() {
+    var p = T.p, opts = '<option value="">Fanni tanlang</option>';
+    var list = FANLAR.slice(); if (p.fan && list.indexOf(p.fan) < 0) list.push(p.fan);
+    list.forEach(function (f) { opts += '<option' + (f === p.fan ? " selected" : "") + '>' + esc(f) + '</option>'; });
+    var ch = [1, 2, 3, 4].map(function (c) { return '<option value="' + c + '"' + (String(p.chorak) === String(c) ? " selected" : "") + '>' + c + '-chorak</option>'; }).join("");
+    return '<div class="wrap">' + bar() +
+      '<div><p class="eyebrow">Chorak natijalari</p><h1>BSB va CHSB nazorat</h1></div>' +
+      '<section class="panel"><h2>Maʼlumotlar</h2><div class="grid">' +
+      '<label class="fld">Tuman<input type="text" data-p="tuman" value="' + esc(p.tuman) + '" placeholder="Tuman nomi"></label>' +
+      '<label class="fld">Maktab<input type="text" data-p="maktab" value="' + esc(p.maktab) + '" placeholder="Masalan, 12-iqtisoslashtirilgan maktab"></label>' +
+      '<label class="fld">F.I.Sh. (familiya, ism, otasining ismi)<input type="text" data-p="fio" value="' + esc(p.fio) + '" placeholder="Familiya Ism Otasining ismi"></label>' +
+      '<label class="fld">Fan<select data-p="fan">' + opts + '</select></label>' +
+      '<label class="fld">Sinf<input type="text" data-p="sinf" value="' + esc(p.sinf) + '" placeholder="Masalan, 9-A"></label>' +
+      '<label class="fld">Chorak<select data-p="chorak">' + ch + '</select></label></div></section>' +
+      '<section class="panel" id="secStruct"></section>' +
+      '<section class="panel"><h2>Oʻquvchilar <span class="muted" id="cnt"></span></h2>' +
+      '<div class="note" id="sampleNote" hidden><span>Jadvaldagi ismlar va ballar namuna sifatida qoʻyilgan.</span><button type="button" data-act="clearSample">Namunani oʻchirish</button></div>' +
+      '<div class="tools"><form class="add" id="addForm"><input type="text" id="newName" placeholder="Oʻquvchi F.I.Sh." aria-label="Yangi oʻquvchi ismi" autocomplete="off"><button type="submit" class="primary">Qoʻshish</button></form>' +
+      '<label class="btn" for="file">Word, Excel yoki PDF dan yuklash<input type="file" id="file" class="vh" accept=".docx,.xlsx,.xls,.csv,.pdf,.txt"></label></div>' +
+      '<details><summary>Roʻyxatni qoʻlda joylash</summary><textarea id="bulk" placeholder="Har bir qatorga bitta oʻquvchi" aria-label="Oʻquvchilar roʻyxati"></textarea>' +
+      '<div class="row" style="margin-top:8px"><button type="button" data-act="bulkPrev">Koʻrib chiqish</button></div></details>' +
+      '<div id="imp"></div>' +
+      '<div class="tools"><button type="button" data-act="sort">Alifbo boʻyicha tartiblash</button><button type="button" class="quiet" data-act="clearScores" data-confirm>Ballarni tozalash</button>' +
+      '<button type="button" class="quiet" data-act="clearAll" data-confirm>Hammasini oʻchirish</button></div>' +
+      '<div class="tablewrap"><table id="tbl"></table></div>' +
+      '<div class="msg" id="msg" role="status" aria-live="polite"></div>' +
+      '<p class="foot">Foiz = jami ball ÷ maksimal ball × 100. Boʻsh katak 0 ball hisoblanadi, bunday qatorda “boʻsh” belgisi chiqadi. Maʼlumot shu brauzerda saqlanadi.</p></section>' +
+      '<section class="panel"><h2>Sinf boʻyicha xulosa</h2><div class="stats" id="stats"></div><div class="dist" id="dist" role="img" aria-label="Baholar taqsimoti"></div><div class="legend" id="legend"></div></section>' +
+      '<section class="panel"><h2>Yuklab olish</h2><p class="muted">Jadval ma’lumotlar bilan birga tayyor hujjatga aylanadi.</p>' +
+      '<div class="row"><button type="button" class="primary" data-act="exp-xlsx">Excel (.xlsx)</button><button type="button" class="primary" data-act="exp-docx">Word (.docx)</button><button type="button" class="primary" data-act="exp-pdf">PDF</button></div>' +
+      '<div class="msg" id="msg2" role="status" aria-live="polite"></div></section></div>';
+  }
+
+  function renderStruct() {
+    var h = '<h2>Baholash tuzilmasi</h2><div class="steppers">' +
+      '<div><span class="sub">BSB soni</span><div class="stp"><button type="button" data-act="bMinus" aria-label="BSB sonini kamaytirish"' + (T.nB <= 0 || (T.nB === 1 && T.nC === 0) ? " disabled" : "") + '>−</button><b>' + T.nB + '</b><button type="button" data-act="bPlus" aria-label="BSB sonini oshirish"' + (T.nB >= 6 ? " disabled" : "") + '>+</button></div></div>' +
+      '<div><span class="sub">CHSB soni</span><div class="stp"><button type="button" data-act="cMinus" aria-label="CHSB sonini kamaytirish"' + (T.nC <= 0 || (T.nC === 1 && T.nB === 0) ? " disabled" : "") + '>−</button><b>' + T.nC + '</b><button type="button" data-act="cPlus" aria-label="CHSB sonini oshirish"' + (T.nC >= 3 ? " disabled" : "") + '>+</button></div></div></div>' +
+      '<div><p class="sub" style="margin-bottom:8px">Har biri uchun maksimal ball</p><div class="row">';
+    T.mx.forEach(function (m, i) { h += '<label class="fld">' + lab(i) + '<input class="s" type="text" inputmode="decimal" data-mx="' + i + '" value="' + esc(m) + '"></label>'; });
+    h += '</div></div><details><summary>Baho chegaralari</summary><div class="th">' +
+      '<label>5 baho: <input type="text" inputmode="decimal" data-th="5" value="' + esc(T.th[5]) + '"> % va undan yuqori</label>' +
+      '<label>4 baho: <input type="text" inputmode="decimal" data-th="4" value="' + esc(T.th[4]) + '"> %dan</label>' +
+      '<label>3 baho: <input type="text" inputmode="decimal" data-th="3" value="' + esc(T.th[3]) + '"> %dan</label><span>2 baho: undan past</span></div></details>';
+    h += '<p class="err" id="cfgErr" role="alert">' + esc(cfgErr()) + '</p>'; $("#secStruct").innerHTML = h;
+  }
+  function renderStudents() {
+    var tot = maxTotal(), mx = maxes();
+    var h = '<thead><tr><th class="n">№</th><th class="nm">F.I.Sh.</th>';
+    mx.forEach(function (m, i) { h += '<th>' + lab(i) + '<small>/ ' + fmt(m) + '</small></th>'; });
+    h += '<th>Jami<small>/ ' + fmt(tot) + '</small></th><th>Foiz</th><th>Baho</th><th></th></tr></thead><tbody>';
+    if (!T.st.length) h += '<tr><td colspan="' + (mx.length + 6) + '" class="empty">Hozircha oʻquvchi yoʻq. Ism qoʻshing yoki Word, Excel, PDF fayldan yuklang.</td></tr>';
+    T.st.forEach(function (st, r) {
+      h += '<tr data-r="' + r + '"><td class="n">' + (r + 1) + '</td><td class="nm"><input type="text" data-r="' + r + '" data-k="n" value="' + esc(st.name) + '" aria-label="Oʻquvchi ismi"></td>';
+      st.s.forEach(function (v, i) {
+        h += '<td><input class="sc" type="text" inputmode="decimal" data-r="' + r + '" data-k="' + i + '" value="' + esc(v) + '" aria-label="' + lab(i) + '"></td>';
+      });
+      h += '<td class="tot"></td><td class="pct"></td><td class="gr"></td><td><button type="button" class="del" data-act="del" data-i="' + r + '" aria-label="Oʻchirish">✕</button></td></tr>';
+    });
+    $("#tbl").innerHTML = h + "</tbody>";
+    $("#cnt").textContent = T.st.length ? "(" + T.st.length + " ta)" : "";
+    $("#sampleNote").hidden = !T.sample;
+    T.st.forEach(function (s, r) { updateRow(r); });
+  }
+  function updateRow(r) {
+    var tr = $('#tbl tr[data-r="' + r + '"]'); if (!tr) return;
+    var c = calc(T.st[r]);
+    tr.querySelector(".tot").textContent = c.filled ? fmt(c.sum) : "–";
+    tr.querySelector(".pct").innerHTML = c.hasBad ? '<span class="err">Xato</span>' : c.filled ? fmt(c.pct, 2) + "%" + (c.blank ? "<small>" + c.blank + " ta boʻsh</small>" : "") : "–";
+    tr.querySelector(".gr").innerHTML = c.grade ? '<span class="chip g' + c.grade + (c.blank ? " part" : "") + '">' + c.grade + "</span>" : (c.hasBad ? "!" : "–");
+    tr.querySelectorAll("input.sc").forEach(function (inp, i) { inp.classList.toggle("bad", !!c.bad[i]); });
+  }
+  function summary() {
+    var all = T.st.map(calc), cs = all.filter(function (c) { return c.grade && !c.blank; }), part = all.filter(function (c) { return c.grade && c.blank; }).length;
+    var n = cs.length, cnt = { 5: 0, 4: 0, 3: 0, 2: 0 }, ps = 0;
+    cs.forEach(function (c) { cnt[c.grade]++; ps += c.pct; });
+    return { part: part, n: n, cnt: cnt, avg: n ? ps / n : 0, sifat: n ? (cnt[5] + cnt[4]) / n * 100 : 0, ozl: n ? (cnt[5] + cnt[4] + cnt[3]) / n * 100 : 0 };
+  }
+  function renderSummary() {
+    var s = summary(), n = s.n;
+    $("#stats").innerHTML =
+      '<div class="stat"><b>' + n + '</b><span>toʻliq baholangan oʻquvchi</span></div>' + (s.part ? '<div class="stat"><b>' + s.part + '</b><span>qisman kiritilgan (hisobga olinmaydi)</span></div>' : "") +
+      '<div class="stat"><b>' + (n ? fmt(s.avg) + "%" : "–") + '</b><span>oʻrtacha foiz</span></div>' +
+      '<div class="stat"><b>' + (n ? fmt(s.sifat, 0) + "%" : "–") + '</b><span>sifat koʻrsatkichi (4 va 5)</span></div>' +
+      '<div class="stat"><b>' + (n ? fmt(s.ozl, 0) + "%" : "–") + '</b><span>oʻzlashtirish (3 va undan yuqori)</span></div>';
+    var d = "", lg = "";
+    [5, 4, 3, 2].forEach(function (g) {
+      if (n && s.cnt[g]) d += '<i style="width:' + (s.cnt[g] / n * 100) + '%;background:var(--g' + g + ')"></i>';
+      lg += '<span><em style="background:var(--g' + g + ')"></em>' + g + " baho: <b>" + s.cnt[g] + "</b></span>";
+    });
+    $("#dist").innerHTML = d; $("#legend").innerHTML = lg;
+  }
+  function renderImp() {
+    var box = $("#imp"); if (!box) return;
+    if (!IMP.length && !impNote) { box.innerHTML = ""; return; }
+    if (!IMP.length) { box.innerHTML = '<div class="note"><span>' + esc(impNote) + '</span></div>'; return; }
+    var li = IMP.map(function (nm, i) {
+      return '<li><span>' + (i + 1) + '</span><input type="text" data-ip="' + i + '" value="' + esc(nm) + '" aria-label="Topilgan ism ' + (i + 1) + '"><button type="button" class="del" data-act="impDel" data-i="' + i + '" aria-label="Olib tashlash">✕</button></li>';
+    }).join("");
+    box.innerHTML = '<div class="imp"><div><b>' + IMP.length + ' ta ism topildi.</b> <span class="muted">' + esc(impNote) + ' Keraksizlarini ✕ bilan olib tashlang, xatolarini tuzating.</span></div><ol>' + li + '</ol>' +
+      '<div class="row"><button type="button" class="primary" data-act="impAdd">Roʻyxatga qoʻshish (' + IMP.length + ')</button><button type="button" class="quiet" data-act="impCancel">Bekor qilish</button></div></div>';
+  }
+  function setMsg(t, undo) {
+    var el = $("#msg"); if (!el) return;
+    el.innerHTML = esc(t) + (undo ? ' <button type="button" data-act="undo">Qaytarish</button>' : "");
+    clearTimeout(msgTimer); msgTimer = setTimeout(function () { el.textContent = ""; }, 6000);
+  }
+  function setMsg2(t) { var el = $("#msg2"); if (el) el.textContent = t; }
+
+  function render() {
+    me = curUser();
+    var html;
+    if (!me) html = viewAuth();
+    else if (me.role === "admin") html = viewAdmin();
+    else if (me.status === "active") { T = loadT(); html = viewWork(); }
+    else html = viewWait();
+    app.innerHTML = html;
+    if (me && me.role === "teacher" && me.status === "active") { renderStruct(); renderStudents(); renderSummary(); renderImp(); }
+  }
+
+  function cleanName(s) {
+    return String(s == null ? "" : s).replace(/\u00a0/g, " ").replace(/^\s*\d+\s*[\.\)\-–:]*\s*/, "")
+      .replace(/(\s+[\d.,\/%]+)+\s*$/, "").replace(/\s+/g, " ").trim();
+  }
+  function isName(s) {
+    if (!s || s.length < 3 || s.length > 60) return false;
+    if (!/[A-Za-zА-Яа-яЁёЎўҚқҒғҲҳ]/.test(s)) return false;
+    if (s.split(" ").length > 6 || /\d{3,}/.test(s)) return false;
+    if (/\b(sinf|ro.?yxat|jurnal|maktab|tuman|jami|bsb|chsb)\b/i.test(s)) return false;
+    if (/^(?:\u2116|n|t\/r|\u0442\/\u0440|ism|ismi|fio|familiya|fan|sana|baho|ball|foiz)$/i.test(s) || /^(?:f\.?\s?i\.?\s?sh|\u0444\.?\s?\u0438\.?\s?\u0448|familiya[\s,]+ism|o.?quvchi(?:lar|ning)?(?:\s|$))/i.test(s)) return false;
+    return true;
+  }
+  function decodeXml(x) { return x.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"); }
+  function fromSheet(wb) {
+    var ws = wb.Sheets[wb.SheetNames[0]];
+    var rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, defval: "" });
+    var cols = {};
+    rows.forEach(function (r) { r.forEach(function (c, i) { if (isName(cleanName(c))) cols[i] = (cols[i] || 0) + 1; }); });
+    var best = -1, bc = 0;
+    Object.keys(cols).forEach(function (k) { if (cols[k] > bc) { bc = cols[k]; best = +k; } });
+    if (best < 0) return rows.map(function (r) { return r.join(" "); });
+    return rows.map(function (r) { return String(r[best] == null ? "" : r[best]); });
+  }
+  function pdfLines(f) {
+    return Promise.all([loadScript(LIB.pdf), loadScript(LIB.pdfw)]).then(function () { return f.arrayBuffer(); }).then(function (buf) {
+      var lib = window.pdfjsLib; lib.GlobalWorkerOptions.workerSrc = LIB.pdfw;
+      return lib.getDocument({ data: new Uint8Array(buf) }).promise;
+    }).then(function (doc) {
+      var out = [], chain = Promise.resolve();
+      for (var p = 1; p <= doc.numPages; p++) {
+        (function (pn) {
+          chain = chain.then(function () { return doc.getPage(pn); }).then(function (pg) { return pg.getTextContent(); }).then(function (tc) {
+            var rows = [];
+            tc.items.forEach(function (it) {
+              if (!it.str || !it.str.trim()) return;
+              var y = Math.round(it.transform[5]), x = it.transform[4];
+              var row = rows.find(function (r) { return Math.abs(r.y - y) <= 3; });
+              if (!row) { row = { y: y, items: [] }; rows.push(row); }
+              row.items.push({ x: x, s: it.str });
+            });
+            rows.sort(function (a, b) { return b.y - a.y; });
+            rows.forEach(function (r) { r.items.sort(function (a, b) { return a.x - b.x; }); out.push(r.items.map(function (i) { return i.s; }).join(" ")); });
+          });
+        })(p);
+      }
+      return chain.then(function () { return out; });
+    });
+  }
+  function readLines(f) {
+    var ext = f.name.toLowerCase().split(".").pop();
+    if (ext === "txt") return f.text().then(function (t) { return t.split(/\r?\n/); });
+    if (ext === "docx") {
+      return loadScript(LIB.zip).then(function () { return f.arrayBuffer(); }).then(function (b) { return JSZip.loadAsync(b); }).then(function (z) {
+        var fl = z.file("word/document.xml"); if (!fl) throw new Error("Word fayl tuzilishi notanish.");
+        return fl.async("string");
+      }).then(function (x) {
+        x = x.replace(/<\/w:p>/g, "\n").replace(/<w:tab\/>/g, " ").replace(/<w:br\/>/g, "\n").replace(/<[^>]+>/g, "");
+        return decodeXml(x).split("\n");
+      });
+    }
+    if (ext === "xlsx" || ext === "xls" || ext === "csv") {
+      return loadScript(LIB.xlsx).then(function () { return f.arrayBuffer(); }).then(function (b) {
+        if (ext === "csv") { var s; try { s = new TextDecoder("utf-8", { fatal: true }).decode(b); } catch (er) { s = new TextDecoder("windows-1251").decode(b); } return fromSheet(XLSX.read(s, { type: "string" })); }
+        return fromSheet(XLSX.read(b, { type: "array" }));
+      });
+    }
+    if (ext === "pdf") return pdfLines(f);
+    if (ext === "doc") return Promise.reject(new Error("Eski .doc formati qoʻllanmaydi. Faylni .docx qilib saqlang."));
+    return Promise.reject(new Error("Bu fayl turi qoʻllanmaydi."));
+  }
+  function namesFrom(lines) {
+    var out = [], dup = 0;
+    lines.forEach(function (l) {
+      var c = cleanName(l); if (!isName(c)) return;
+      out.push(c);
+    });
+    return { names: out, dup: dup };
+  }
+  function setImport(res, label) {
+    IMP = res.names;
+    impNote = (label || "") + (res.dup ? " " + res.dup + " ta takror tashlab yuborildi." : "");
+    if (!IMP.length) impNote = "Fayldan ism topilmadi. Ismlar alohida qator yoki ustunda boʻlishi kerak.";
+    renderImp();
+  }
+  function addStudent(name) {
+    var id = T.st.reduce(function (m, s) { return Math.max(m, s.id); }, 0) + 1;
+    T.st.push({ id: id, name: name, s: T.mx.map(function () { return ""; }) });
+  }
+  function afterStudents() { saveT(); renderStudents(); renderSummary(); }
+
+  function buildExport() {
+    var p = T.p, s = summary(), tot = maxTotal(), mx = maxes();
+    var head = ["№", "F.I.Sh."];
+    mx.forEach(function (m, i) { head.push(lab(i) + "\n(" + fmt(m) + ")"); });
+    head.push("Jami\n(" + fmt(tot) + ")", "Foiz", "Baho");
+    var rows = T.st.map(function (st, i) {
+      var c = calc(st);
+      return { n: i + 1, name: st.name, sc: st.s.map(num), sum: c.filled ? c.sum : null, pct: c.filled ? c.pct : null, grade: c.grade };
+    });
+    var cells = rows.map(function (r) {
+      return [String(r.n), r.name].concat(r.sc.map(function (v) { return v == null ? "" : fmt(v); }), [r.sum == null ? "" : fmt(r.sum), r.pct == null ? "" : fmt(r.pct, 2) + "%", r.grade ? String(r.grade) : ""]);
+    });
+    return {
+      title: "BSB va CHSB natijalari",
+      meta: [["Tuman", p.tuman], ["Maktab", p.maktab], ["Oʻqituvchi", p.fio], ["Fan", p.fan], ["Sinf", p.sinf], ["Chorak", p.chorak + "-chorak"]],
+      head: head, rows: rows, cells: cells, nS: mx.length,
+      summary: "Baholangan: " + s.n + " ta  ·  Oʻrtacha: " + (s.n ? fmt(s.avg) + "%" : "–") + "  ·  Sifat (4 va 5): " + (s.n ? fmt(s.sifat, 0) + "%" : "–") + "  ·  Oʻzlashtirish: " + (s.n ? fmt(s.ozl, 0) + "%" : "–")
+    };
+  }
+  function fname(ext) {
+    var base = [T.p.sinf, T.p.fan, "BSB-CHSB"].filter(Boolean).join("_").replace(/[^\wЀ-ӿ\-]+/g, "_").replace(/_+/g, "_");
+    return (base || "BSB-CHSB") + "." + ext;
+  }
+  function saveFile(name, blob) {
+    var getDl = Promise.resolve(null);
+    return getDl.then(function (d) {
+      if (!d) { try { var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 30000); setMsg2("Tayyor: " + name); } catch (er) { setMsg2("Saqlab boʻlmadi."); } return; }
+      return d.save({ filename: name, data: blob }).then(function () { setMsg2("Tayyor: " + name); }, function (e) {
+        setMsg2(e && e.code === "declined" ? "Saqlash bekor qilindi." : "Saqlab boʻlmadi" + (e && e.message ? ": " + e.message : "."));
+      });
+    });
+  }
+  function xlsxBlob(X) {
+    var aoa = [[X.title], []];
+    X.meta.forEach(function (m) { aoa.push([m[0], m[1]]); });
+    aoa.push([]);
+    var hr = aoa.length;
+    aoa.push(X.head.map(function (h) { return h.replace("\n", " "); }));
+    X.rows.forEach(function (r) { aoa.push([r.n, r.name].concat(r.sc.map(function (v) { return v == null ? "" : v; }), [r.sum == null ? "" : r.sum, r.pct == null ? "" : r.pct, r.grade || ""])); });
+    aoa.push([]); aoa.push([X.summary]);
+    var ws = XLSX.utils.aoa_to_sheet(aoa), nc = X.head.length;
+    ws["!cols"] = [{ wch: 5 }, { wch: 34 }].concat(X.rows.length ? Array.apply(null, Array(nc - 2)).map(function () { return { wch: 11 }; }) : []);
+    ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: Math.max(nc - 1, 3) } }];
+    X.rows.forEach(function (r, i) { var c = ws[XLSX.utils.encode_cell({ r: hr + 1 + i, c: nc - 2 })]; if (c && typeof c.v === "number") c.z = '0.0"%"'; });
+    var wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Natijalar");
+    var out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+    return new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+  }
+  function xe(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function wRun(t, o) {
+    o = o || {};
+    return '<w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/>' + (o.b ? "<w:b/>" : "") + '<w:sz w:val="' + (o.sz || 24) + '"/></w:rPr>' +
+      String(t).split("\n").map(function (x, i) { return (i ? "<w:br/>" : "") + '<w:t xml:space="preserve">' + xe(x) + "</w:t>"; }).join("") + "</w:r>";
+  }
+  function wPara(t, o) {
+    o = o || {};
+    return '<w:p><w:pPr><w:spacing w:before="0" w:after="' + (o.after == null ? 60 : o.after) + '"/><w:jc w:val="' + (o.al || "left") + '"/></w:pPr>' + wRun(t, o) + "</w:p>";
+  }
+  function wCell(t, w, o) {
+    o = o || {};
+    return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (o.shade ? '<w:shd w:val="clear" w:color="auto" w:fill="' + o.shade + '"/>' : "") + '<w:vAlign w:val="center"/></w:tcPr>' +
+      wPara(t, { b: o.b, sz: 20, al: o.al || "center", after: 0 }) + "</w:tc>";
+  }
+  function docxBlob(X) {
+    var nS = X.nS, usable = 15398, wS = 900, fixed = 600 + nS * wS + 1000 + 1000 + 800, wN = Math.max(2800, usable - fixed);
+    var widths = [600, wN].concat(Array.apply(null, Array(nS)).map(function () { return wS; }), [1000, 1000, 800]);
+    var total = widths.reduce(function (a, b) { return a + b; }, 0);
+    var body = wPara(X.title, { b: true, sz: 30, al: "center", after: 160 });
+    for (var i = 0; i < X.meta.length; i += 2) {
+      var a = X.meta[i], b = X.meta[i + 1];
+      body += '<w:p><w:pPr><w:spacing w:before="0" w:after="40"/></w:pPr>' + wRun(a[0] + ": ", { b: true }) + wRun(a[1] || "—") + wRun("        ") + wRun(b[0] + ": ", { b: true }) + wRun(b[1] || "—") + "</w:p>";
+    }
+    body += wPara("", { after: 80 });
+    var tbl = '<w:tbl><w:tblPr><w:tblW w:w="' + total + '" w:type="dxa"/><w:tblBorders>' +
+      ["top", "left", "bottom", "right", "insideH", "insideV"].map(function (s) { return '<w:' + s + ' w:val="single" w:sz="4" w:space="0" w:color="808080"/>'; }).join("") +
+      '</w:tblBorders><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="40" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:bottom w:w="40" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' +
+      widths.map(function (w) { return '<w:gridCol w:w="' + w + '"/>'; }).join("") + "</w:tblGrid>";
+    tbl += '<w:tr><w:trPr><w:cantSplit/><w:tblHeader/></w:trPr>' + X.head.map(function (h, i) { return wCell(h, widths[i], { b: true, shade: "E6E6E6" }); }).join("") + "</w:tr>";
+    X.cells.forEach(function (r) {
+      tbl += '<w:tr><w:trPr><w:cantSplit/></w:trPr>' + r.map(function (c, i) { return wCell(c, widths[i], { al: i === 1 ? "left" : "center", b: i === r.length - 1 }); }).join("") + "</w:tr>";
+    });
+    body += tbl + "</w:tbl>" + wPara("", { after: 60 }) + wPara(X.summary, { b: true });
+    var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + body +
+      '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="400" w:footer="400" w:gutter="0"/></w:sectPr></w:body></w:document>';
+    var z = new JSZip();
+    z.file("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+    z.file("_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+    z.file("word/document.xml", doc);
+    return z.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+  }
+  function pdfBlob(X) {
+    var W = 1123, H = 794, S = 2, m = 36, FF = '"Onest", Arial, sans-serif', nS = X.nS;
+    var numW = 36, sW = nS <= 6 ? 64 : 52, totW = 64, pctW = 70, grW = 56;
+    var nameW = W - 2 * m - (numW + nS * sW + totW + pctW + grW);
+    if (nameW < 200) { nameW = 200; sW = Math.max(36, (W - 2 * m - numW - nameW - totW - pctW - grW) / nS); }
+    var cw = [numW, nameW].concat(Array.apply(null, Array(nS)).map(function () { return sW; }), [totW, pctW, grW]);
+    var titleH = 124, hdrH = 44, rowH = 26, foot = 26;
+    var firstCap = Math.floor((H - m - foot - (m + titleH) - hdrH) / rowH), otherCap = Math.floor((H - m - foot - m - hdrH) / rowH);
+    var pages = [], i = 0, cap = firstCap;
+    do { pages.push(X.cells.slice(i, i + cap)); i += cap; cap = otherCap; } while (i < X.cells.length);
+    var lastCap = pages.length === 1 ? firstCap : otherCap;
+    var sumOwnPage = (lastCap - pages[pages.length - 1].length) * rowH < 36;
+    if (sumOwnPage) pages.push([]);
+    function fit(c, t, w) { if (c.measureText(t).width <= w) return t; while (t.length > 1 && c.measureText(t + "…").width > w) t = t.slice(0, -1); return t + "…"; }
+    function drawPage(pi, rows) {
+      var cv = document.createElement("canvas"); cv.width = W * S; cv.height = H * S;
+      var c = cv.getContext("2d"); c.scale(S, S); c.fillStyle = "#fff"; c.fillRect(0, 0, W, H); c.fillStyle = "#000"; c.textBaseline = "middle";
+      var y = m;
+      if (pi === 0) {
+        c.textAlign = "center"; c.font = "700 22px " + FF; c.fillText(X.title, W / 2, y + 14); y += 44;
+        c.textAlign = "left";
+        for (var k = 0; k < X.meta.length; k += 2) {
+          [X.meta[k], X.meta[k + 1]].forEach(function (mm, j) {
+            var x = j ? W / 2 : m; c.font = "600 14px " + FF; var lw = c.measureText(mm[0] + ": ").width; c.fillText(mm[0] + ": ", x, y);
+            c.font = "400 14px " + FF; c.fillText(fit(c, mm[1] || "—", W / 2 - m - lw - 10), x + lw, y);
+          });
+          y += 24;
+        }
+        y = m + titleH;
+      }
+      if (rows.length || pi === 0) {
+        var x = m; c.fillStyle = "#E6E6E6"; c.fillRect(m, y, W - 2 * m, hdrH); c.fillStyle = "#000"; c.textAlign = "center";
+        X.head.forEach(function (h, ci) {
+          var ls = h.split("\n"); c.font = "600 12px " + FF;
+          ls.forEach(function (l, li) { c.font = (li ? "400 11px " : "600 12px ") + FF; c.fillText(fit(c, l, cw[ci] - 6), x + cw[ci] / 2, y + hdrH / 2 + (ls.length > 1 ? (li ? 8 : -8) : 0)); });
+          x += cw[ci];
+        });
+        c.strokeStyle = "#777"; c.lineWidth = 0.8;
+        rows.forEach(function (r, ri) {
+          var ry = y + hdrH + ri * rowH; if (ri % 2) { c.fillStyle = "#F5F5F5"; c.fillRect(m, ry, W - 2 * m, rowH); }
+          c.fillStyle = "#000"; var cx = m;
+          r.forEach(function (t, ci) {
+            c.font = (ci === r.length - 1 ? "700 " : "400 ") + "13px " + FF;
+            if (ci === 1) { c.textAlign = "left"; c.fillText(fit(c, t, cw[ci] - 14), cx + 8, ry + rowH / 2); } else { c.textAlign = "center"; c.fillText(t, cx + cw[ci] / 2, ry + rowH / 2); }
+            cx += cw[ci];
+          });
+        });
+        var th = hdrH + rows.length * rowH; c.strokeRect(m, y, W - 2 * m, th);
+        var gx = m; cw.forEach(function (w) { gx += w; if (gx < W - m - 1) { c.beginPath(); c.moveTo(gx, y); c.lineTo(gx, y + th); c.stroke(); } });
+        for (var ri = 0; ri <= rows.length; ri++) { var ly = y + hdrH + ri * rowH; c.beginPath(); c.moveTo(m, ly); c.lineTo(W - m, ly); c.stroke(); }
+        y += th;
+      }
+      if (pi === pages.length - 1) { c.fillStyle = "#000"; c.textAlign = "left"; c.font = "600 14px " + FF; c.fillText(X.summary, m, (sumOwnPage ? m : y + 22)); }
+      c.textAlign = "right"; c.font = "400 12px " + FF; c.fillStyle = "#555"; c.fillText((pi + 1) + " / " + pages.length, W - m, H - 18);
+      return cv;
+    }
+    var fl = (document.fonts && document.fonts.load) ? document.fonts.load("14px Onest").catch(function () {}) : Promise.resolve();
+    return Promise.all([fl, loadScript(LIB.jspdf)]).then(function () {
+      var doc = new window.jspdf.jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      pages.forEach(function (rows, pi) {
+        if (pi) doc.addPage();
+        doc.addImage(drawPage(pi, rows).toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 297, 210);
+      });
+      return doc.output("blob");
+    });
+  }
+  function doExport(kind) {
+    if (!T.st.length) { setMsg2("Avval oʻquvchi qoʻshing."); return; }
+    var ce = cfgErr(); if (ce) { setMsg2(ce); return; }
+    if (T.st.some(function (s) { return calc(s).hasBad; })) { setMsg2("Jadvalda notoʻgʻri ball (qizil katak) bor. Avval tuzating."); return; }
+    setMsg2("Tayyorlanmoqda…");
+    var X = buildExport(), job;
+    if (kind === "xlsx") job = loadScript(LIB.xlsx).then(function () { return xlsxBlob(X); });
+    else if (kind === "docx") job = loadScript(LIB.zip).then(function () { return docxBlob(X); });
+    else job = pdfBlob(X);
+    job.then(function (blob) { return saveFile(fname(kind), blob); }).catch(function (e) { setMsg2("Xatolik: " + (e && e.message ? e.message : "fayl tayyorlanmadi")); });
+  }
+
+  function colHasData(i) { return T.st.some(function (s) { return String(s.s[i] == null ? "" : s.s[i]).trim() !== ""; }); }
+  function setCount(kind, delta) {
+    if (kind === "B") {
+      var n = T.nB + delta; if (n < 0 || n > 6 || (n === 0 && T.nC === 0)) return;
+      if (delta > 0) { T.mx.splice(T.nB, 0, "10"); T.st.forEach(function (s) { s.s.splice(T.nB, 0, ""); }); }
+      else { if (colHasData(T.nB - 1) && !confirm("Oxirgi BSB ustunidagi ballar oʻchadi. Davom etasizmi?")) return; T.mx.splice(T.nB - 1, 1); T.st.forEach(function (s) { s.s.splice(T.nB - 1, 1); }); }
+      T.nB = n;
+    } else {
+      var c = T.nC + delta; if (c < 0 || c > 3 || (c === 0 && T.nB === 0)) return;
+      if (delta > 0) { T.mx.push("20"); T.st.forEach(function (s) { s.s.push(""); }); }
+      else { if (colHasData(T.mx.length - 1) && !confirm("Oxirgi CHSB ustunidagi ballar oʻchadi. Davom etasizmi?")) return; T.mx.pop(); T.st.forEach(function (s) { s.s.pop(); }); }
+      T.nC = c;
+    }
+    saveT(); renderStruct(); renderStudents(); renderSummary();
+  }
+  function setAuth(tab, msg) { authTab = tab; authMsg = msg || null; render(); }
+
+  app.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-act]"); if (!b) return;
+    if (b.hasAttribute("data-confirm") && !b.dataset.armed) {
+      b.dataset.armed = "1"; b.dataset.label = b.textContent; b.textContent = "Aniqmi? Yana bosing";
+      clearTimeout(b._t); b._t = setTimeout(function () { if (b.isConnected) { delete b.dataset.armed; b.textContent = b.dataset.label; } }, 3000);
+      return;
+    }
+    if (b.dataset.armed) { clearTimeout(b._t); delete b.dataset.armed; b.textContent = b.dataset.label; }
+    var a = b.dataset.act, id = b.dataset.id, i = +b.dataset.i;
+    if (a === "toggle-pass") {
+      var passInput = document.getElementById(b.dataset.target);
+      if (passInput) {
+        var visible = passInput.type === "password";
+        passInput.type = visible ? "text" : "password";
+        b.querySelector(".eye-slash").style.display = visible ? "block" : "none";
+        b.setAttribute("aria-pressed", visible ? "true" : "false");
+        b.setAttribute("aria-label", visible ? "Parolni yashirish" : "Parolni ko‘rsatish");
+      }
+      return;
+    }
+    if (a === "tab-login") return setAuth("login");
+    if (a === "tab-reg") return setAuth("reg");
+    if (a === "logout") { lsDel(K_SESS); authMsg = null; authTab = "login"; return render(); }
+    if (a === "refresh") return render();
+    if (a === "approve" || a === "block" || a === "deluser") {
+      var us = users();
+      if (a === "deluser") { us = us.filter(function (u) { return u.id !== id; }); lsDel(K_DATA + id); }
+      else us.forEach(function (u) { if (u.id === id) u.status = a === "approve" ? "active" : "blocked"; });
+      saveUsers(us); return render();
+    }
+    if (!T) return;
+    if (a === "bMinus") return setCount("B", -1);
+    if (a === "bPlus") return setCount("B", 1);
+    if (a === "cMinus") return setCount("C", -1);
+    if (a === "cPlus") return setCount("C", 1);
+    if (a === "sort") {
+      T.st.sort(function (x, y) { return x.name.localeCompare(y.name, "uz"); });
+      afterStudents(); return setMsg("Alifbo boʻyicha tartiblandi.");
+    }
+    if (a === "clearScores") { T.st.forEach(function (s) { s.s = T.mx.map(function () { return ""; }); }); afterStudents(); return setMsg("Ballar tozalandi."); }
+    if (a === "clearAll") { T.st = []; T.sample = false; afterStudents(); return setMsg("Roʻyxat tozalandi."); }
+    if (a === "clearSample") { T.st = []; T.sample = false; afterStudents(); var nn = $("#newName"); if (nn) nn.focus(); return; }
+    if (a === "del") { lastDel = { st: T.st[i], i: i }; T.st.splice(i, 1); afterStudents(); return setMsg("Oʻquvchi oʻchirildi.", true); }
+    if (a === "undo") { if (lastDel) { T.st.splice(lastDel.i, 0, lastDel.st); lastDel = null; afterStudents(); setMsg("Qaytarildi."); } return; }
+    if (a === "impDel") { IMP.splice(i, 1); if (!IMP.length) impNote = ""; return renderImp(); }
+    if (a === "impCancel") { IMP = []; impNote = ""; return renderImp(); }
+    if (a === "impAdd") {
+      if (T.sample) { T.st = []; T.sample = false; }
+      var have = {}; T.st.forEach(function (s) { have[s.name.toLowerCase()] = 1; });
+      var added = 0, skipped = 0;
+      IMP.forEach(function (nm) { nm = nm.trim(); if (!nm) return; if (have[nm.toLowerCase()]) skipped++; addStudent(nm); added++; });
+      IMP = []; impNote = ""; renderImp(); afterStudents();
+      return setMsg(added + " ta oʻquvchi qoʻshildi" + (skipped ? ", shundan " + skipped + " tasi roʻyxatdagi ism bilan bir xil. Tekshirib chiqing" : "") + ".");
+    }
+    if (a === "bulkPrev") {
+      var ls = $("#bulk").value.split(/\r?\n/).map(function (l) { return l.split("\t")[0]; });
+      setImport(namesFrom(ls), "Joylangan roʻyxatdan."); return;
+    }
+    if (a === "exp-xlsx") return doExport("xlsx");
+    if (a === "exp-docx") return doExport("docx");
+    if (a === "exp-pdf") return doExport("pdf");
+  });
+
+  app.addEventListener("input", function (e) {
+    var t = e.target; if (!T) return;
+    if (t.dataset.mx != null || t.dataset.th) {
+      if (t.dataset.mx != null) T.mx[+t.dataset.mx] = t.value.trim(); else T.th[t.dataset.th] = t.value.trim();
+      saveT(); var ce = $("#cfgErr"); if (ce) ce.textContent = cfgErr(); renderStudents(); renderSummary(); return;
+    }
+    if (t.dataset.p) { T.p[t.dataset.p] = t.value; saveT(); return; }
+    if (t.dataset.ip != null && t.dataset.ip !== "") { IMP[+t.dataset.ip] = t.value; return; }
+    if (t.dataset.r != null) {
+      var st = T.st[+t.dataset.r], k = t.dataset.k;
+      if (k === "n") st.name = t.value; else st.s[+k] = t.value;
+      saveT(); if (k !== "n") { updateRow(+t.dataset.r); renderSummary(); }
+    }
+  });
+  app.addEventListener("change", function (e) {
+    var t = e.target; if (!T) return;
+    if (t.dataset.mx != null) { T.mx[+t.dataset.mx] = t.value.trim(); saveT(); renderStudents(); renderSummary(); return; }
+    if (t.dataset.th) { T.th[t.dataset.th] = t.value.trim(); saveT(); renderStudents(); renderSummary(); return; }
+    if (t.id === "file" && t.files && t.files[0]) {
+      var f = t.files[0]; t.value = "";
+      impNote = ""; IMP = []; var box = $("#imp"); if (box) box.innerHTML = '<div class="note"><span>Fayl oʻqilmoqda…</span></div>';
+      readLines(f).then(function (ls) { setImport(namesFrom(ls), f.name + " faylidan."); }).catch(function (err) {
+        IMP = []; impNote = (err && err.message) || "Faylni oʻqib boʻlmadi."; renderImp();
+      });
+    }
+  });
+  app.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter") return;
+    var t = e.target; if (t.dataset.r == null) return;
+    e.preventDefault();
+    var nx = $('#tbl input[data-r="' + (+t.dataset.r + 1) + '"][data-k="' + t.dataset.k + '"]');
+    if (nx) { nx.focus(); nx.select(); }
+  });
+  app.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var id = e.target.id;
+    if (id === "addForm") {
+      var inp = $("#newName"), v = inp.value.trim(); if (!v) { inp.focus(); return; }
+      if (T.sample) { T.st = []; T.sample = false; }
+      var dupe = T.st.some(function (s) { return s.name.toLowerCase() === v.toLowerCase(); }); addStudent(v); inp.value = ""; afterStudents(); inp.focus(); if (dupe) setMsg("Diqqat: bu ism roʻyxatda bor edi, ikkinchi oʻquvchi sifatida qoʻshildi."); return;
+    }
+    if (id === "fLogin") {
+      var lg = normLogin($("#lLogin").value), pw = $("#lPass").value;
+      if (!lg) return setAuth("login", { t: "err", text: "Email yoki telefon raqamni toʻgʻri kiriting." });
+      var u = users().find(function (x) { return x.login === lg; });
+      if (!u) return setAuth("login", { t: "err", text: "Bunday foydalanuvchi topilmadi." });
+      hashPw(pw, u.salt, u.strong).then(function (h) {
+        if (h !== u.hash) return setAuth("login", { t: "err", text: "Parol notoʻgʻri." });
+        lsSet(K_SESS, u.id); authMsg = null; render();
+      });
+      return;
+    }
+    if (id === "fReg") {
+      var name = $("#rName").value.trim().replace(/\s+/g, " "), rl = normLogin($("#rLogin").value), p1 = $("#rPass").value, p2 = $("#rPass2").value;
+      var bad = function (t) { setAuth("reg", { t: "err", text: t }); };
+      if (name.length < 3) return bad("Ismingizni toʻliq kiriting.");
+      if (!rl || rl === "admin") return bad("Email yoki telefon raqamni toʻgʻri kiriting. Telefon: +998 90 123 45 67.");
+      if (p1.length < 6) return bad("Parol kamida 6 belgidan iborat boʻlsin.");
+      if (p1 !== p2) return bad("Parollar bir xil emas.");
+      var all = users();
+      if (all.some(function (x) { return x.login === rl; })) return bad("Bu email yoki raqam bilan allaqachon roʻyxatdan oʻtilgan.");
+      var salt = uid();
+      hashPw(p1, salt, true).then(function (h) {
+        all.push({ id: uid(), name: name, login: rl, salt: salt, hash: h, role: "teacher", strong: true, status: "pending", created: Date.now() });
+        saveUsers(all);
+        setAuth("login", { t: "ok", text: "Roʻyxatdan oʻtdingiz. Endi login va parol bilan kiring." });
+      });
+    }
+  });
+
+  var list = users().filter(function (u) { return u.role !== "admin"; });
+  list.push({ id: "admin", name: "Administrator", login: "admin", salt: "a4e3d23dd33be2a139c8d586", hash: "62ec4fed385cdaaf51dd6fa2d19db57595b751aeb2bdad355a6074c3b8829ed5", strong: true, role: "admin", status: "active", created: 0 });
+  saveUsers(list); render();
+})();
+</script>
+
+</body>
+</html>
